@@ -1,5 +1,19 @@
 from forcealign import ForceAlign
 from pathlib import Path
+import nltk
+from nltk.data import find
+
+nltk_resources = [
+    "taggers/averaged_perceptron_tagger",
+    "taggers/averaged_perceptron_tagger_eng"
+]
+
+for resource in nltk_resources:
+    try:
+        find(resource)
+    except LookupError:
+        print(f"nltk {resource} not found. Downloading...")
+        nltk.download(resource.split("/")[-1])
 
 def format_timestamp(sec):
     h = int(sec // 3600)
