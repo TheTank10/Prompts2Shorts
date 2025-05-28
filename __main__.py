@@ -70,6 +70,8 @@ def main():
         if not args.prompt and not args.prompts:
             parser.error("--prompt='' or --prompts='' is required when using --create")
 
+        utils.authenticate_ffmpeg()
+
         print_mode = args.print
         video_settings = args.settings
 
