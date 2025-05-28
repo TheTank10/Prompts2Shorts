@@ -1,0 +1,25 @@
+{
+    "text_model": "openai-large",
+    "image_model": "flux",
+    "seed": -1,
+    
+    "resolution": "1080x1920",
+    "fps": 25,
+    "zoom_speed": 0.0010,
+    "force_cuda": false,
+
+    "font_name": "Montserrat Bold",
+    "font_size": 20,
+    "font_normal_color": "FFFFFF",
+    "font_highlighted_color": "00FF00",
+    "font_outline": 1,
+    "font_shadow": 2,
+    "font_alignment": "MIDDLE_CENTER",
+
+    "subtitles": true,
+    "subtitle_entry_ms": 250,
+    "subtitle_init_scale_percentage": 90,
+    "subtitle_final_scale_percentage": 100,
+
+    "system_prompt": "base"
+}
