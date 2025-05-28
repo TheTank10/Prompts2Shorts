@@ -18,7 +18,7 @@
 Clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/your-username/prompts2shorts.git
+git clone https://github.com/TheTank10/Prompts2Shorts.git
 cd prompts2shorts
 pip install -r requirements.txt
 ```
