@@ -1,13 +1,14 @@
-# Template for generating videos completely from AI
+# Template for generating videos using duckduckgo images and AI scripts
 
-from src import ai 
+from src import ai
+from src import duckduckgo
 from src import captions 
 from src import video
 import re
 import time
 import json
 from pathlib import Path
-from PIL import Image
+#from PIL import Image 
 
 def edit_text(content, content_length, content_index, settings, retries):
     print(f"Edit content:\n\nPart {content_index+1}/{content_length}: {content}\n\nEdit this part of the content or press enter to continue.\nUse --enhance ... to enhance with AI")
@@ -27,34 +28,15 @@ def edit_text(content, content_length, content_index, settings, retries):
         return edit
     else: 
         return content
-
-def edit_image(ai_image_query, content_length, image_index, settings, retries):
-    ai_image_path = None 
-
-    while True:
-        try:
-            ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{image_index}.jpg", settings=settings)
-            break
-        except Exception as e:
-            print("Error re-generating image. Retrying...", e)
-            retries-=1
-            if retries==0:
-                return
-
-    print(f"Edit image prompt:\n\nPart {image_index+1}/{content_length}: {ai_image_query}\n\nEdit the prompt of the ai image or press enter to continue.\nUse --enhance ... to enhance this prompt with AI")
-    image = Image.open(ai_image_path)
-    image.show()
-    edit = input(": ")
-
     
-    if edit=="":
-        return ai_image_path
-    else:
-        return edit_image(edit, content_length, image_index, settings, retries)
+# TODO: edit_image for ddg sourced images
 
 def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings="default"):
-
     settings = json.load(open(Path(f"data/settings/video_settings/{video_settings}.json")))
+
+    if settings["system_prompt"] == "base": 
+        settings["system_prompt"] = "base_ddg"
+
     max_retries = retries
     tick = time.time()
 
@@ -83,39 +65,34 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
     for i, part in enumerate(story):
 
         if print_mode:
-            print(f"Fetching ai image and ai audio for story part {i+1}/{story_length}. time elapsed: ", time.time()-tick)
+            print(f"Fetching DuckDuckGo image and ai audio for story part {i+1}/{story_length}. time elapsed: ", time.time()-tick)
 
         content = part["content"]
         content = re.sub(r'[\*\(\)]', '', content)
-        ai_image_query = part["ai_image_query"]
+        google_image_query = part["google_image_query"]
         voice_style = part["voice_style"]
-
+        
         if edit_mode:
             content = edit_text(content, story_length, i, settings, retries)
             if not content:
                 return 0,0
-        
+
         story_transcript += content+" "
-        ai_image_path = None 
+        google_image_path = None 
         audio_path, duration = None, None
         image_video_path = None
 
-        while not ai_image_path or not audio_path:
+        while not google_image_path or not audio_path:
             try:
-                if ai_image_path is None:
-                    if edit_mode: 
-                        ai_image_path = edit_image(ai_image_query, story_length, i, settings, retries)
-                        if ai_image_path==None: 
-                            return 0,0
-                    else:
-                        ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{i}.jpg", settings=settings)
+                if google_image_path is None:
+                    google_image_path = duckduckgo.image.generate(google_image_query, image_name=f"image_{i}.png", settings=settings)
                 if audio_path is None: 
                     audio_path, duration = ai.audio.generate(content, "echo", voice_style, audio_name=f"audio_{i}.mp3")
-                image_video_path = video.panning.generate(ai_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings)
+                image_video_path = video.panning.generate(google_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings)
                 retries = max_retries
             except Exception as e:
-                print("Error generating image, audio or/and video. Retrying...", e)
-                ai_image_path = None
+                print("Error fetching image, audio or/and video. Retrying...", e)
+                google_image_path = None
                 audio_path = None
                 retries -= 1
                 if retries <= 0:

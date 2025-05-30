@@ -55,6 +55,7 @@ python -m prompts2shorts --create --prompts="example_prompts.txt"
   Default: `data/settings/video_settings/default.json`
   Example path: `data/settings/video_settings/my_custom_config.json`
 
+* `-t`, `--template`: Allows you to choose between different templates for your video. Options: `ai` (default), `duckduckgo`. 
 * `-rt`, `--retries`: Number of retries if generation fails (default: 5)
 * `-pr`, `--print`: Whether to show logs in the console during video generation (default: True)
 * `-em`, `--editmode`: Allows you to edit content text and image prompts while the video is being generated. Allows for higher quality videos even more using --enhance. (default: False)
@@ -93,6 +94,29 @@ Video generation is highly customizable via the `data/settings/video_settings/` 
 * Swap image/text models used in generation
 
 > 📃 Refer to `SETTINGS REFERENCE.md` in `data/settings/video_settings/` for detailed descriptions of every setting.
+
+---
+
+## 🗂️ Templates
+
+Templates allow you to control how your video is generated, based on the type of images used.
+
+### Available Templates
+
+* `ai` – Uses AI-generated images to create the video.
+* `duckduckgo` – Uses real-world images sourced from DuckDuckGo.
+
+Each template suits different types of content:
+
+* Use `duckduckgo` for topics like movies, TV shows, or real-world events, where authentic images are important.
+* Use `ai` for imaginative content, such as fictional characters or places that don't exist.
+
+> Use `--template=''` to select a template. The default is `ai`.
+
+### Upcoming Templates
+
+* `mix` – Combines both AI-generated and DuckDuckGo images.
+* `background-footage` – Replaces images with background videos, such as gameplay footage.
 
 ---
 
