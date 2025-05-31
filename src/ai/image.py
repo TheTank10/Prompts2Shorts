@@ -36,7 +36,7 @@ def generate(
     encoded_prompt = quote_plus(prompt)
     base = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
 
-    model = settings["image_model"]
+    model = settings.get("image_model", "flux")
 
     params = {
         "model": model,

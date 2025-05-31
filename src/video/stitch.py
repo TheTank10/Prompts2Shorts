@@ -68,7 +68,7 @@ def generate(
     video_paths = [Path(v) for v in video_list]
     durations = [get_video_duration(vp) for vp in video_paths]
 
-    transition_duration = settings["transition_duration"]
+    transition_duration = settings.get("transition_duration", 0.3)
 
     offsets = []
     total = 0.0
@@ -85,16 +85,20 @@ def generate(
         inputs.extend(["-i", str(vp)])
     inputs.extend(["-i", str(audio_path)])
 
-    transition_type = settings["transition"]
+    transition_type = settings.get("transition", "random")
+    transition_type = transition_type.split(",") if "," in transition_type else [transition_type]
+    transition_index = 0
 
     filter_parts = []
     for idx in range(len(video_paths)):
         filter_parts.append(f"[{idx}:v]format=yuv420p[v{idx}];")
     for i in range(len(video_paths) - 1):
-        if transition_type.lower() == "random":
+
+        transition = transition_type[transition_index % len(transition_type)].lower().strip()
+        transition_index += 1
+
+        if transition == "random":
             transition = random.choice(TRANSITIONS)
-        else: 
-            transition = transition_type
 
         left = "v0" if i == 0 else f"vf{i}"
         right = f"v{i+1}"

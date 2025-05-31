@@ -28,7 +28,7 @@ def hex_to_ass_color(hex_color):
     return f"&H{b}{g}{r}&"
 
 def generate(srt_file_path, transcript, ass_file_name="ass_output.ass", settings=None):
-    if settings["subtitles"] == False:
+    if settings.get("subtitles", True) == False:
         return None
 
     # Get highlighted words and regex
@@ -40,23 +40,23 @@ def generate(srt_file_path, transcript, ass_file_name="ass_output.ass", settings
 
     # Set up default style
     default_style = subs.styles.get("Default", pysubs2.SSAStyle())
-    default_style.fontname = settings["font_name"]
-    default_style.fontsize = settings["font_size"]
+    default_style.fontname = settings.get("font_name", "Montserrat Bold")
+    default_style.fontsize = settings.get("font_size", 20)
     default_style.primarycolor = pysubs2.Color(255, 255, 255)  # White
-    default_style.outline = settings["font_outline"]
-    default_style.shadow = settings["font_shadow"]
-    default_style.alignment = pysubs2.Alignment[settings["font_alignment"]]
+    default_style.outline = settings.get("font_outline", 1)
+    default_style.shadow = settings.get("font_shadow", 2)
+    default_style.alignment = pysubs2.Alignment[settings.get("font_alignment", "MIDDLE_CENTER")]
     subs.styles["Default"] = default_style
 
-    green_color = hex_to_ass_color(settings["font_highlighted_color"])
-    normal_color = hex_to_ass_color(settings["font_normal_color"])
+    green_color = hex_to_ass_color(settings.get("font_highlighted_color", "00FF00"))
+    normal_color = hex_to_ass_color(settings.get("font_normal_color", "FFFFFF"))
     green_tag = f"{{\\1c{green_color}}}"
     reset_tag = f"{{\\1c{normal_color}}}"
 
     # Animation config
-    entry_ms = settings["subtitle_entry_ms"]
-    init_scale = settings["subtitle_init_scale_percentage"]
-    final_scale = settings["subtitle_final_scale_percentage"]
+    entry_ms = settings.get("subtitle_entry_ms", 250)
+    init_scale = settings.get("subtitle_init_scale_percentage", 90)
+    final_scale = settings.get("subtitle_final_scale_percentage", 100)
     animation_tag = f"{{\\fscx{init_scale}\\fscy{init_scale}\\t(0,{entry_ms},\\fscx{final_scale}\\fscy{final_scale})}}"
 
     for line in subs:

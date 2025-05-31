@@ -69,13 +69,16 @@ To use a custom settings file, pass it into your command using:
 | `subtitle_entry_ms`               | int    | `250`               | Time (ms) each word takes to animate into view. Lower = faster.                                                                                                        |
 | `subtitle_init_scale_percentage`  | int    | `90`                | Starting scale (%) when a subtitle word appears.                                                                                                                       |
 | `subtitle_final_scale_percentage` | int    | `100`               | Final scale (%) once the word animation ends.                                                                                                                          |
-| `transition`                   | string | `"random"`            | Transition effect used to transition between images. 31 effects to pick from. Read below for a list.| 
+| `transition`                   | string | `"random"`            | Transition effect used to transition between images. 31 effects to pick from. Read below for a list. Can be chained check xfade transition cheatshseet.| 
 | `transition_duration`                   | int | `0.3`            | Duration (in seconds) the transition will last |
 | `system_prompt`                   | string | `"base"`            | Internal system prompt used for AI generation. Should output a list like: `[{"content":"", "ai_image_query":"", "voice_style":""}]` Go to data/prompts/ to read more about how to create your own.                                   |
 
 ---
 
 ## 🎮 FFmpeg `xfade` Transition Effects Cheatsheet
+
+*Transitions can be chained with a comma ','. Example: `'transition':'fade,fadeblack,wipeup,random'`*
+*That would be the order transitions appear in the video. After it reaches the end it loops back*
 
 | Transition      | Description                                           |
 | --------------- | ----------------------------------------------------- |

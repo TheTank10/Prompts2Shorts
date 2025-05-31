@@ -31,13 +31,13 @@ def build_payload(prompt, model="openai-large", seed=-1, private=True, system_pr
 
 def generate(prompt, generate_json=True, settings=None):
 
-    seed = str(settings["seed"])
-    model = settings["text_model"]
+    seed = str(settings.get("seed", -1))
+    model = settings.get("text_model", "openai-large")
 
     if seed == "-1":
         seed = str(math.floor(random.random() * 1000000))
 
-    payload = build_payload(prompt, model=model, seed=seed, system_prompt=settings["system_prompt"]+".txt" if generate_json else None)
+    payload = build_payload(prompt, model=model, seed=seed, system_prompt=settings.get("system_prompt", "base")+".txt" if generate_json else None)
     resp = requests.post(endpoint, json=payload,
     headers={"Content-Type":"application/json"})
     resp.raise_for_status()

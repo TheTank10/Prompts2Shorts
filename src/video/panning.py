@@ -13,13 +13,12 @@ def generate(
     settings=None
 ):
     output_path = str(Path("temp") / video_name)
-
-    fps = settings["fps"]
-    resolution = settings["resolution"]
-    zoom_speed = settings["zoom_speed"]
+    fps = settings.get("fps", 25)
+    resolution = settings.get("resolution", "1080x1920")
+    zoom_speed = settings.get("zoom_speed", 0.010)
 
     # Check for cuda if not use cpu
-    use_gpu = torch.cuda.is_available() or settings["force_cuda"]
+    use_gpu = torch.cuda.is_available() or settings.get("force_cuda", False)
 
     codec = "h264_nvenc" if use_gpu else "libx264"
     hwaccel = ["-hwaccel", "cuda"] if use_gpu else []

@@ -11,7 +11,7 @@ def generate(
     max_results=5,
 ):
     
-    resolution = settings["resolution"]
+    resolution = settings.get("resolution", "1080x1920")
 
     out_folder="temp"
     w0, h0 = map(int, resolution.split("x"))
