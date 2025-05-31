@@ -58,6 +58,8 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
     max_retries = retries
     tick = time.time()
 
+    text_to_speech_voice = settings.get("text_to_speech_voice", "ash")
+
     if print_mode:
         print("Generating story. time elapsed: ", time.time()-tick)
 
@@ -88,7 +90,6 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
         content = part["content"]
         content = re.sub(r'[\*\(\)]', '', content)
         ai_image_query = part["ai_image_query"]
-        voice_style = part["voice_style"]
 
         if edit_mode:
             content = edit_text(content, story_length, i, settings, retries)
@@ -110,7 +111,7 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
                     else:
                         ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{i}.jpg", settings=settings)
                 if audio_path is None: 
-                    audio_path, duration = ai.audio.generate(content, "echo", voice_style, audio_name=f"audio_{i}.mp3")
+                    audio_path, duration = ai.audio.generate(content, text_to_speech_voice, audio_name=f"audio_{i}.mp3")
                 image_video_path = video.panning.generate(ai_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings)
                 retries = max_retries
             except Exception as e:

@@ -1,6 +1,7 @@
 {
     "text_model": "openai-large",
     "image_model": "flux",
+    "text_to_speech_voice": "ash",
     "seed": -1,
     
     "resolution": "1080x1920",
@@ -21,7 +22,7 @@
     "subtitle_init_scale_percentage": 90,
     "subtitle_final_scale_percentage": 100,
 
-    "transition": "random",
+    "transition": "slideleft",
     "transition_duration": 0.3,
 
     "system_prompt": "base"

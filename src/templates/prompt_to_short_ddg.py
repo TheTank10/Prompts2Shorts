@@ -34,8 +34,10 @@ def edit_text(content, content_length, content_index, settings, retries):
 def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings="default"):
     settings = json.load(open(Path(f"data/settings/video_settings/{video_settings}.json")))
 
-    if settings["system_prompt"] == "base": 
+    if settings.get("system_prompt", "base") == "base": 
         settings["system_prompt"] = "base_ddg"
+
+    text_to_speech_voice = settings.get("text_to_speech_voice", "ash")
 
     max_retries = retries
     tick = time.time()
@@ -70,7 +72,6 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
         content = part["content"]
         content = re.sub(r'[\*\(\)]', '', content)
         google_image_query = part["google_image_query"]
-        voice_style = part["voice_style"]
         
         if edit_mode:
             content = edit_text(content, story_length, i, settings, retries)
@@ -87,7 +88,7 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
                 if google_image_path is None:
                     google_image_path = duckduckgo.image.generate(google_image_query, image_name=f"image_{i}.png", settings=settings)
                 if audio_path is None: 
-                    audio_path, duration = ai.audio.generate(content, "echo", voice_style, audio_name=f"audio_{i}.mp3")
+                    audio_path, duration = ai.audio.generate(content, text_to_speech_voice, audio_name=f"audio_{i}.mp3")
                 image_video_path = video.panning.generate(google_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings)
                 retries = max_retries
             except Exception as e:

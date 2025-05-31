@@ -2,6 +2,8 @@ import pysubs2
 from pathlib import Path
 import re
 
+# TODO: Fix the damn highlighted words idk why it just stopped working out of no where???
+
 def get_highlighted_words(text):
     segments = re.findall(r"\*(.*?)\*", text)
     words = []

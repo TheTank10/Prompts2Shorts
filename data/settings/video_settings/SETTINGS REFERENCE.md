@@ -16,6 +16,7 @@ To use a custom settings file, pass it into your command using:
 {
     "text_model": "openai-large",
     "image_model": "flux",
+    "text_to_speech_voice": "ash",
     "seed": -1,
     
     "resolution": "1080x1920",
@@ -36,7 +37,7 @@ To use a custom settings file, pass it into your command using:
     "subtitle_init_scale_percentage": 90,
     "subtitle_final_scale_percentage": 100,
 
-    "transition": "random",
+    "transition": "slideleft",
     "transition_duration": 0.3,
 
     "system_prompt": "base"
@@ -51,6 +52,7 @@ To use a custom settings file, pass it into your command using:
 | --------------------------------- | ------ | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `text_model`                      | string | `"openai-large"`    | AI model used for text generation (e.g. scriptwriting). Run `--getmodels` to list all available models.                                                                |
 | `image_model`                     | string | `"flux"`            | AI model used for generating images. Some models like `gptimage` may require a key. Run `--getmodels` to list all available models.                                                                                    |
+| `text_to_speech_voice` | string | `"ash"` | Voice used for text to speech generation. Options include: `"alloy"`, `"echo"`, `"fable"`, `"onyx"`, `"nova"`, `"shimmer"`, `"coral"`, `"verse"`, `"ballad"`, `"ash"`, `"sage"`, `"amuch"`, `"dan"`. Go to openai.fm to experiment |
 | `seed`                            | int    | `-1`                | Random seed for consistency. Set to any number ≥ 0 to make outputs repeatable.                                                                                         |
 | `resolution`                      | string | `"1080x1920"`       | Final video resolution (WIDTHxHEIGHT). `1080x1920` is ideal for vertical platforms like TikTok.                                                                        |
 | `fps`                             | int    | `25`                | Frames per second for the video. Higher FPS = smoother motion.                                                                                                         |
