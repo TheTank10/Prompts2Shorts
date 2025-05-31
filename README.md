@@ -25,6 +25,8 @@ pip install -r requirements.txt
 
 You also **must install [FFmpeg](https://www.ffmpeg.org/download.html)**. When you first run with `--create`, the program will prompt you to specify the FFmpeg executable path. If it's already added to your system's PATH, you can just enter `ffmpeg`.
 
+> FFmpeg version: >= `7.1.1`
+> Python version: `3.10.0`
 ---
 
 ## 🛠️ Usage

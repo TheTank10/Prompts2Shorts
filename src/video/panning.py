@@ -10,7 +10,8 @@ def generate(
     duration,
     video_name="panning_image.mp4",
     crf=28,
-    settings=None
+    settings=None,
+    print_mode=True
 ):
     output_path = str(Path("temp") / video_name)
     fps = settings.get("fps", 25)
@@ -49,6 +50,15 @@ def generate(
         "-pix_fmt", "yuv420p",
         output_path
     ]
-    subprocess.run(cmd, check=True)
+
+    if print_mode:
+        subprocess.run(cmd, check=True)
+    else:
+        subprocess.run(
+            cmd,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
     return output_path

@@ -32,7 +32,6 @@ def generate(
     referrer=None,
     settings=None,
 ):
-    prompt += ", negative prompt: worst quality, blurry"
     encoded_prompt = quote_plus(prompt)
     base = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
 
@@ -46,6 +45,8 @@ def generate(
         "private": str(private).lower(),
         "enhance": str(enhance).lower(),
         "safe": str(safe).lower(),
+        "negative_prompt": ", negative prompt: worst quality, blurry",
+        "token": "desktophut"
     }
     if seed is not None:
         params["seed"] = seed

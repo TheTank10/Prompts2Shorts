@@ -24,7 +24,12 @@ def concatenate_audio(audio_paths, audio_name="concatenated_audio.mp3"):
         "-b:a", "192k",
         output
     ]
-    subprocess.run(cmd, check=True)
+
+    # Avoids the ffmpeg y/N
+    if os.path.exists(output):
+        os.remove(output)
+
+    subprocess.run(cmd, check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
     os.remove("concat_list.txt")
 
     for path in audio_paths:

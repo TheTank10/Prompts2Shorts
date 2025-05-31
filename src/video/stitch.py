@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import torch
 import cv2
+from mutagen.mp3 import MP3
 
 TRANSITIONS = [
     "fade",
@@ -62,6 +63,7 @@ def generate(
     ass_file=None,
     settings=None,
     video_name='final_video.mp4',
+    print_mode=True,
     crf=28,
     audio_bitrate='96k',
 ):
@@ -69,6 +71,7 @@ def generate(
     durations = [get_video_duration(vp) for vp in video_paths]
 
     transition_duration = settings.get("transition_duration", 0.3)
+    audio_duration = MP3(audio_path).info.length
 
     offsets = []
     total = 0.0
@@ -128,8 +131,19 @@ def generate(
         "-map", f"{audio_index}:a",
         "-c:v", codec, "-preset", "veryfast", "-crf", str(crf),
         "-c:a", "aac", "-b:a", audio_bitrate,
-        "-movflags", "+faststart", "-shortest",
+        "-movflags", "+faststart", "-t", f"{audio_duration}",
         str(Path("output") / video_name)
     ]
-    subprocess.run(cmd, check=True, cwd=str(project_root))
+
+    if print_mode:
+        subprocess.run(cmd, check=True, cwd=str(project_root))
+    else:
+        subprocess.run(
+            cmd,
+            check=True,
+            cwd=str(project_root),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
     return str(Path("output") / video_name)
