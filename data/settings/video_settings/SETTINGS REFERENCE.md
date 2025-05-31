@@ -17,6 +17,7 @@ To use a custom settings file, pass it into your command using:
     "text_model": "openai-large",
     "image_model": "flux",
     "seed": -1,
+    
     "resolution": "1080x1920",
     "fps": 25,
     "zoom_speed": 0.0010,
@@ -34,6 +35,9 @@ To use a custom settings file, pass it into your command using:
     "subtitle_entry_ms": 250,
     "subtitle_init_scale_percentage": 90,
     "subtitle_final_scale_percentage": 100,
+
+    "transition": "random",
+    "transition_duration": 0.3,
 
     "system_prompt": "base"
 }
@@ -63,7 +67,48 @@ To use a custom settings file, pass it into your command using:
 | `subtitle_entry_ms`               | int    | `250`               | Time (ms) each word takes to animate into view. Lower = faster.                                                                                                        |
 | `subtitle_init_scale_percentage`  | int    | `90`                | Starting scale (%) when a subtitle word appears.                                                                                                                       |
 | `subtitle_final_scale_percentage` | int    | `100`               | Final scale (%) once the word animation ends.                                                                                                                          |
+| `transition`                   | string | `"random"`            | Transition effect used to transition between images. 31 effects to pick from. Read below for a list.| 
+| `transition_duration`                   | int | `0.3`            | Duration (in seconds) the transition will last |
 | `system_prompt`                   | string | `"base"`            | Internal system prompt used for AI generation. Should output a list like: `[{"content":"", "ai_image_query":"", "voice_style":""}]` Go to data/prompts/ to read more about how to create your own.                                   |
+
+---
+
+## 🎮 FFmpeg `xfade` Transition Effects Cheatsheet
+
+| Transition      | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| **random**      | Randomly choose between these effects                 |
+| **fade**        | Crossfade between two videos.                         |
+| **fadeblack**   | Fade through black between videos.                    |
+| **fadewhite**   | Fade through white between videos.                    |
+| **wipeleft**    | Wipe transition from right to left.                   |
+| **wiperight**   | Wipe transition from left to right.                   |
+| **wipeup**      | Wipe transition from bottom to top.                   |
+| **wipedown**    | Wipe transition from top to bottom.                   |
+| **slideleft**   | Slide transition from right to left.                  |
+| **slideright**  | Slide transition from left to right.                  |
+| **slideup**     | Slide transition from bottom to top.                  |
+| **slidedown**   | Slide transition from top to bottom.                  |
+| **circleopen**  | Circular opening transition revealing the next video. |
+| **circleclose** | Circular closing transition hiding the current video. |
+| **circlecrop**  | Circular crop transition between videos.              |
+| **radial**      | Radial transition effect.                             |
+| **diagtl**      | Diagonal transition from top-left to bottom-right.    |
+| **diagtr**      | Diagonal transition from top-right to bottom-left.    |
+| **diagbl**      | Diagonal transition from bottom-left to top-right.    |
+| **diagbr**      | Diagonal transition from bottom-right to top-left.    |
+| **hlslice**     | Horizontal slice transition from left to right.       |
+| **hrslice**     | Horizontal slice transition from right to left.       |
+| **vuslice**     | Vertical slice transition from top to bottom.         |
+| **vdslice**     | Vertical slice transition from bottom to top.         |
+| **smoothleft**  | Smooth transition moving leftward.                    |
+| **smoothright** | Smooth transition moving rightward.                   |
+| **smoothup**    | Smooth transition moving upward.                      |
+| **smoothdown**  | Smooth transition moving downward.                    |
+| **distance**    | Transition effect based on distance mapping.          |
+| **pixelize**    | Pixelization effect during transition.                |
+| **blurblack**   | Blur transition fading to black.                      |
+| **blurwhite**   | Blur transition fading to white.                      |
 
 ---
 

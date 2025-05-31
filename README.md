@@ -35,13 +35,11 @@ Run the program via command line with one of the available options:
 
 ```bash
 # Create a single video in the command line with a prompt
-python -m prompts2shorts --create --prompt="A video about anything you want"
-# Optionally you can run __main__.py from the root directory
-python __main__.py --create --prompt="A video about anything you want"
+python app.py --create --prompt="A video about anything you want"
 
 # Create multiple videos with different prompts from a text file. 
 # Each prompt in the text file must be split by ';'
-python -m prompts2shorts --create --prompts="example_prompts.txt"
+python app.py --create --prompts="example_prompts.txt"
 ```
 
 **Optional Flags:**

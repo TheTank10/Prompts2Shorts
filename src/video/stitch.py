@@ -1,67 +1,131 @@
 import subprocess
-import tempfile
+import random
 from pathlib import Path
 import json
+import torch
+import cv2
+
+TRANSITIONS = [
+    "fade",
+    "fadeblack",
+    "fadewhite",
+    "wipeleft",
+    "wiperight",
+    "wipeup",
+    "wipedown",
+    "slideleft",
+    "slideright",
+    "slideup",
+    "slidedown",
+    "circleopen",
+    "circleclose",
+    "circlecrop",
+    "radial",
+    "diagtl",
+    "diagtr",
+    "diagbl",
+    "diagbr",
+    "hlslice",
+    "hrslice",
+    "vuslice",
+    "vdslice",
+    "smoothleft",
+    "smoothright",
+    "smoothup",
+    "smoothdown",
+    "distance",
+    "pixelize",
+    "blurblack",
+    "blurwhite",
+]
 
 ffmpeg = json.load(open(Path("data/settings/ffmpeg.json")))["path"]
-
-# Determine project root (two levels up from this file)
 project_root = Path(__file__).resolve().parents[2]
 
-def make_concat_list(video_list):
-    f = tempfile.NamedTemporaryFile(
-        mode='w', delete=False, suffix='.txt', dir=str(project_root)
-    )
-    for v in video_list:
-        f.write(f"file '{v}'\n")
-    f.close()
-    return Path(f.name)
+def escape_colons(path):
+    return path.replace(":", "\\:")
 
-
-def escape_colons(path: str) -> str:
-    return path.replace(':', '\\:')
+def get_video_duration(video_path):
+    cap = cv2.VideoCapture(str(video_path))
+    if not cap.isOpened():
+        raise RuntimeError(f"Cannot open video: {video_path!r}")
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    cap.release()
+    if fps <= 0 or frames <= 0:
+        raise RuntimeError(f"Invalid metadata for {video_path!r} (fps={fps}, frames={frames})")
+    return frames / fps
 
 def generate(
     video_list,
     audio_path,
-    ass_file,
+    ass_file=None,
+    settings=None,
     video_name='final_video.mp4',
     crf=28,
     audio_bitrate='96k',
 ):
-    list_file = make_concat_list(video_list)
+    video_paths = [Path(v) for v in video_list]
+    durations = [get_video_duration(vp) for vp in video_paths]
 
-    output = str(Path("output") / video_name)
+    transition_duration = settings["transition_duration"]
 
-    try:
-        if ass_file:
-            ass_escaped = escape_colons(str(Path(ass_file).as_posix()))
-            fonts_dir = 'data/fonts'
-            vf_arg = f"format=yuv420p,ass={ass_escaped}:fontsdir={fonts_dir}"
-            vf_args = ['-vf', vf_arg]
-        else:
-            vf_args = []
+    offsets = []
+    total = 0.0
+    for i, d in enumerate(durations[:-1]):
+        total += d
+        offsets.append(total - (i + 1) * transition_duration)
 
-        cmd = [
-            ffmpeg,
-            '-y',
-            '-f', 'concat', '-safe', '0', '-i', str(list_file),
-            '-i', audio_path,
-            *vf_args,
-            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', str(crf),
-            '-c:a', 'aac', '-b:a', audio_bitrate,
-            '-movflags', '+faststart',
-            output
-        ]
+    use_gpu = torch.cuda.is_available() or (settings and settings.get("force_cuda", False))
+    codec = "h264_nvenc" if use_gpu else "libx264"
+    hwaccel = ["-hwaccel", "cuda"] if use_gpu else []
 
-        subprocess.run(
-            cmd,
-            check=True,
-            cwd=str(project_root)
+    inputs = []
+    for vp in video_paths:
+        inputs.extend(["-i", str(vp)])
+    inputs.extend(["-i", str(audio_path)])
+
+    transition_type = settings["transition"]
+
+    filter_parts = []
+    for idx in range(len(video_paths)):
+        filter_parts.append(f"[{idx}:v]format=yuv420p[v{idx}];")
+    for i in range(len(video_paths) - 1):
+        if transition_type.lower() == "random":
+            transition = random.choice(TRANSITIONS)
+        else: 
+            transition = transition_type
+
+        left = "v0" if i == 0 else f"vf{i}"
+        right = f"v{i+1}"
+        out_tag = f"vf{i+1}"
+        off = offsets[i]
+        filter_parts.append(
+            f"[{left}][{right}]xfade={transition}:"
+            f"duration={transition_duration}:offset={off}[{out_tag}];"
         )
+    last_tag = f"vf{len(video_paths) - 1}"
+    filter_parts.append(f"[{last_tag}]format=yuv420p[outv]")
+    filter_complex = "".join(filter_parts)
 
-    finally:
-        if list_file.exists():
-            list_file.unlink()
+    if ass_file:
+        esc = escape_colons(str(Path(ass_file).as_posix()))
+        fonts = "data/fonts"
+        filter_complex += f";[outv]ass={esc}:fontsdir={fonts}[outvv]"
+        video_tag = "[outvv]"
+    else:
+        video_tag = "[outv]"
 
-    return output
+    audio_index = len(video_paths)
+    cmd = [
+        ffmpeg, "-y", *hwaccel, *inputs,
+        "-filter_complex", filter_complex,
+        "-map", video_tag,
+        "-map", f"{audio_index}:a",
+        "-c:v", codec, "-preset", "veryfast", "-crf", str(crf),
+        "-c:a", "aac", "-b:a", audio_bitrate,
+        "-movflags", "+faststart", "-shortest",
+        str(Path("output") / video_name)
+    ]
+    subprocess.run(cmd, check=True, cwd=str(project_root))
+    return str(Path("output") / video_name)

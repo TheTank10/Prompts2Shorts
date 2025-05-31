@@ -21,5 +21,8 @@
     "subtitle_init_scale_percentage": 90,
     "subtitle_final_scale_percentage": 100,
 
+    "transition": "random",
+    "transition_duration": 0.3,
+
     "system_prompt": "base"
 }

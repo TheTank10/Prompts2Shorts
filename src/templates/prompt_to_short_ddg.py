@@ -112,6 +112,6 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
     if print_mode:
         print("Stiching video together. time elapsed: ", time.time()-tick)
 
-    final_video = video.stitch.generate(videos, concatenated_audio, ass_file)
+    final_video = video.stitch.generate(videos, concatenated_audio, ass_file, settings=settings)
 
     return final_video, story_seed
