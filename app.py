@@ -10,6 +10,17 @@ if not os.path.exists("temp"):
 if not os.path.exists("output"):
     os.makedirs("output")
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    val = v.lower().strip()
+    if val in ("yes", "y", "true", "t", "1"):
+        return True
+    elif val in ("no", "n", "false", "f", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError(f"Boolean value expected (got '{v}').")    
+
 def main():
     parser = argparse.ArgumentParser(prog="script")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -47,7 +58,7 @@ def main():
     )
     parser.add_argument(
         "-pr", "--print",
-        type=bool,
+        type=str2bool,
         default=True,
         help="Prints to the console as the video is being created."
     )
@@ -65,7 +76,7 @@ def main():
     )
     parser.add_argument(
         "-em", "--editmode",
-        type=bool,
+        type=str2bool,
         default=False,
         help="Edit prompts and images as they are being generated. Useful to enhance your video."
     )

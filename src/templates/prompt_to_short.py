@@ -112,7 +112,7 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
                         ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{i}.jpg", settings=settings)
                 if audio_path is None: 
                     audio_path, duration = ai.audio.generate(content, text_to_speech_voice, audio_name=f"audio_{i}.mp3")
-                image_video_path = video.panning.generate(ai_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings)
+                image_video_path = video.panning.generate(ai_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings, print_mode=print_mode)
                 retries = max_retries
             except Exception as e:
                 print("Error generating image, audio or/and video. Retrying...", e)
@@ -136,6 +136,6 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
     if print_mode:
         print("Stiching video together. time elapsed: ", time.time()-tick)
 
-    final_video = video.stitch.generate(videos, concatenated_audio, ass_file, settings=settings)
+    final_video = video.stitch.generate(videos, concatenated_audio, ass_file, settings=settings, print_mode=print_mode)
 
     return final_video, story_seed
