@@ -7,46 +7,21 @@ import cv2
 from mutagen.mp3 import MP3
 
 TRANSITIONS = [
-    "fade",
-    "fadeblack",
-    "fadewhite",
-    "wipeleft",
-    "wiperight",
-    "wipeup",
-    "wipedown",
-    "slideleft",
-    "slideright",
-    "slideup",
-    "slidedown",
-    "circleopen",
-    "circleclose",
-    "circlecrop",
-    "radial",
-    "diagtl",
-    "diagtr",
-    "diagbl",
-    "diagbr",
-    "hlslice",
-    "hrslice",
-    "vuslice",
-    "vdslice",
-    "smoothleft",
-    "smoothright",
-    "smoothup",
-    "smoothdown",
-    "distance",
-    "pixelize",
-    "blurblack",
-    "blurwhite",
+    "fade", "fadeblack", "fadewhite", "wipeleft", "wiperight", "wipeup",
+    "wipedown", "slideleft", "slideright", "slideup", "slidedown",
+    "circleopen", "circleclose", "circlecrop", "radial", "diagtl",
+    "diagtr", "diagbl", "diagbr", "hlslice", "hrslice", "vuslice",
+    "vdslice", "smoothleft", "smoothright", "smoothup", "smoothdown",
+    "distance", "pixelize", "blurblack", "blurwhite",
 ]
 
 ffmpeg = json.load(open(Path("data/settings/ffmpeg.json")))["path"]
 project_root = Path(__file__).resolve().parents[2]
 
-def escape_colons(path):
+def escape_colons(path: str) -> str:
     return path.replace(":", "\\:")
 
-def get_video_duration(video_path):
+def get_video_duration(video_path: Path) -> float:
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
         raise RuntimeError(f"Cannot open video: {video_path!r}")
@@ -62,10 +37,10 @@ def generate(
     audio_path,
     ass_file=None,
     settings=None,
-    video_name='final_video.mp4',
+    video_name="final_video.mp4",
     print_mode=True,
     crf=28,
-    audio_bitrate='96k',
+    audio_bitrate="96k",
 ):
     video_paths = [Path(v) for v in video_list]
     durations = [get_video_duration(vp) for vp in video_paths]
@@ -88,6 +63,11 @@ def generate(
         inputs.extend(["-i", str(vp)])
     inputs.extend(["-i", str(audio_path)])
 
+    need_transition_sfx = len(video_paths) > 1 and len(offsets) > 0
+    if need_transition_sfx:
+        transition_sfx_path = project_root / "data" / "sound" / "transition.mp3"
+        inputs.extend(["-i", str(transition_sfx_path)])
+
     transition_type = settings.get("transition", "random")
     transition_type = transition_type.split(",") if "," in transition_type else [transition_type]
     transition_index = 0
@@ -95,11 +75,10 @@ def generate(
     filter_parts = []
     for idx in range(len(video_paths)):
         filter_parts.append(f"[{idx}:v]format=yuv420p[v{idx}];")
-    for i in range(len(video_paths) - 1):
 
+    for i in range(len(video_paths) - 1):
         transition = transition_type[transition_index % len(transition_type)].lower().strip()
         transition_index += 1
-
         if transition == "random":
             transition = random.choice(TRANSITIONS)
 
@@ -108,31 +87,63 @@ def generate(
         out_tag = f"vf{i+1}"
         off = offsets[i]
         filter_parts.append(
-            f"[{left}][{right}]xfade={transition}:"
-            f"duration={transition_duration}:offset={off}[{out_tag}];"
+            f"[{left}][{right}]xfade={transition}:duration={transition_duration}:offset={off}[{out_tag}];"
         )
+
     last_tag = f"vf{len(video_paths) - 1}"
     filter_parts.append(f"[{last_tag}]format=yuv420p[outv]")
-    filter_complex = "".join(filter_parts)
 
     if ass_file:
-        esc = escape_colons(str(Path(ass_file).as_posix()))
-        fonts = "data/fonts"
-        filter_complex += f";[outv]ass={esc}:fontsdir={fonts}[outvv]"
+        esc_ass = escape_colons(str(Path(ass_file).as_posix()))
+        fonts_dir = "data/fonts"
+        filter_parts.append(f";[outv]ass={esc_ass}:fontsdir={fonts_dir}[outvv]")
         video_tag = "[outvv]"
     else:
         video_tag = "[outv]"
 
     audio_index = len(video_paths)
+    if need_transition_sfx:
+        trans_index = len(video_paths) + 1
+        num_transitions = len(offsets)
+
+        split_labels = [f"ts{i}" for i in range(num_transitions)]
+        delay_labels = [f"del{i}" for i in range(num_transitions)]
+
+        asplit_part = f"[{trans_index}:a]asplit={num_transitions}" + "".join(f"[{l}]" for l in split_labels)
+        filter_parts.append(f";{asplit_part};")
+
+        for i, off in enumerate(offsets):
+            ms = int(off * 1000)
+            filter_parts.append(f"[{split_labels[i]}]adelay={ms}:all=1[{delay_labels[i]}];")
+
+        filter_parts.append(f"[{audio_index}:a]asetpts=PTS-STARTPTS[main];")
+
+        all_mix_inputs = "[main]" + "".join(f"[{lbl}]" for lbl in delay_labels)
+        amix_part = f"{all_mix_inputs}amix=inputs={num_transitions + 1}:normalize=0[mixa]"
+        filter_parts.append(amix_part)
+
+        audio_tag = "[mixa]"
+    else:
+        audio_tag = f"{audio_index}:a"
+
+    filter_complex = "".join(filter_parts)
+
     cmd = [
-        ffmpeg, "-y", *hwaccel, *inputs,
+        ffmpeg,
+        "-y",
+        *hwaccel,
+        *inputs,
         "-filter_complex", filter_complex,
         "-map", video_tag,
-        "-map", f"{audio_index}:a",
-        "-c:v", codec, "-preset", "veryfast", "-crf", str(crf),
-        "-c:a", "aac", "-b:a", audio_bitrate,
-        "-movflags", "+faststart", "-t", f"{audio_duration}",
-        str(Path("output") / video_name)
+        "-map", audio_tag,
+        "-c:v", codec,
+        "-preset", "veryfast",
+        "-crf", str(crf),
+        "-c:a", "aac",
+        "-b:a", audio_bitrate,
+        "-movflags", "+faststart",
+        "-t", f"{audio_duration}",
+        str(Path("output") / video_name),
     ]
 
     if print_mode:
@@ -143,7 +154,7 @@ def generate(
             check=True,
             cwd=str(project_root),
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            stderr=subprocess.DEVNULL,
         )
 
     return str(Path("output") / video_name)
