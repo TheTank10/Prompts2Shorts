@@ -112,8 +112,8 @@ To use a custom settings file, pass it into your command using:
 | **smoothdown**  | Smooth transition moving downward.                    |
 | **distance**    | Transition effect based on distance mapping.          |
 | **pixelize**    | Pixelization effect during transition.                |
-| **blurblack**   | Blur transition fading to black.                      |
-| **blurwhite**   | Blur transition fading to white.                      |
+| **blurblack**   | Blur transition fading to black.*Currently unsupported|
+| **blurwhite**   | Blur transition fading to white.*Currently unsupported|
 
 ---
 

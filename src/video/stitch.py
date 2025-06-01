@@ -12,8 +12,10 @@ TRANSITIONS = [
     "circleopen", "circleclose", "circlecrop", "radial", "diagtl",
     "diagtr", "diagbl", "diagbr", "hlslice", "hrslice", "vuslice",
     "vdslice", "smoothleft", "smoothright", "smoothup", "smoothdown",
-    "distance", "pixelize", "blurblack", "blurwhite",
+    "distance", "pixelize",
 ]
+
+missing_transitions = ["blurblack", "blurwhite"] # Idk where the fuck they are
 
 ffmpeg = json.load(open(Path("data/settings/ffmpeg.json")))["path"]
 project_root = Path(__file__).resolve().parents[2]
