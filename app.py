@@ -1,6 +1,8 @@
 from src import templates 
 from src import utils
 from src import ai
+from pathlib import Path
+import json
 import os
 import argparse
 
@@ -39,6 +41,11 @@ def main():
         "--getmodels",
         action="store_true",
         help="Get a list of pollinations ai text/image models. (json file with the information will be created to src/ai/pollination_models)"
+    )
+    group.add_argument(
+        "--downloadffmpeg",
+        action="store_true",
+        help="Attempts to download an ffmpeg version subitable for this program and your OS."
     )
     parser.add_argument(
         "-p", "--prompt",
@@ -119,12 +126,23 @@ def main():
     elif args.cleartemp:
         utils.clear_temp()
         print("Temp folder cleared")
+
     elif args.getmodels:
         ai.pollination_models.update_model_list.list_text_models()
         ai.pollination_models.update_model_list.list_image_models()
 
         print("Text models list created to src/ai/pollination_models/pollination_text_models.json")
         print("Image models list created to src/ai/pollination_models/pollination_image_models.json")
-        
+
+    elif args.downloadffmpeg:
+        ffmpeg_path = utils.download_ffmpeg()
+
+        with open(Path("data/settings/ffmpeg.json"), 'w') as f: 
+            json.dump({"path":str(ffmpeg_path)}, f, indent=4)
+
+        print("* Authenticating FFmpeg...")
+        utils.authenticate_ffmpeg()
+        print("* FFmpeg downloaded and authenticated. You can now use --create.")
+
 if __name__ == "__main__":
     main()

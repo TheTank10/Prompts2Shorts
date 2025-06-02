@@ -29,6 +29,8 @@ Download the [latest release](https://github.com/TheTank10/Prompts2Shorts/releas
 
 You also **must install [FFmpeg](https://www.ffmpeg.org/download.html)**. When you first run with `--create`, the program will prompt you to specify the FFmpeg executable path. If it's already added to your system's PATH, you can just enter `ffmpeg`.
 
+Optionally you can use `--downloadffmpeg` to automatically download the required FFmpeg version for your device. This is recommended but it might not work for you. If it doesn't work download it from the official page and enter the path to the exe when you run `--create`.
+
 > FFmpeg version: >= `7.1.1`
 > Python version: `3.10.0`
 
