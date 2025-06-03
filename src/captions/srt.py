@@ -2,6 +2,10 @@ from forcealign import ForceAlign
 from pathlib import Path
 import nltk
 from nltk.data import find
+import subprocess
+import json
+
+ffmpeg = json.load(open(Path("data/settings/ffmpeg.json"), 'r'))["path"]
 
 nltk_resources = [
     "taggers/averaged_perceptron_tagger",
@@ -49,7 +53,26 @@ def write_srt(words, srt_file_name, words_per_caption=1):
             f.write(f"{format_timestamp(start)} --> {format_timestamp(end)}\n")
             f.write(" ".join(buffer) + "\n")
 
+def convert_mp3_to_wav(mp3_path):
+    mp3_path = Path(mp3_path)
+    if not mp3_path.exists():
+        raise FileNotFoundError(f"MP3 file not found: {mp3_path}")
+
+    wav_path = mp3_path.with_suffix('.wav')
+
+    result = subprocess.run(
+        [ffmpeg, '-y', '-i', str(mp3_path), str(wav_path)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(f"FFmpeg failed to convert {mp3_path} to WAV.")
+    
+    return str(wav_path)
+
 def generate(audio_path, transcript, srt_file_name="srt_output.srt"):
+    audio_path = convert_mp3_to_wav(audio_path)
     align = ForceAlign(audio_file=audio_path, transcript=transcript)
     words = align.inference()
     write_srt(words, srt_file_name)

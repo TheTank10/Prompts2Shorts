@@ -10,10 +10,32 @@ import tarfile
 import zipfile
 
 def update_ffmpeg_path(path):
-    settings_path = str(Path("data/settings/ffmpeg.json"))
-    settings = json.load(open(settings_path))
-    settings["path"] = path
-    json.dump(settings_path, settings, indent=4)
+    p = Path(path).expanduser().resolve()
+
+    def is_ffmpeg(f):
+        return f.is_file() and f.stem.lower() == "ffmpeg"
+
+    exe_path = None
+
+    if is_ffmpeg(p):
+        exe_path = str(p)
+    else:
+        search_root = p if p.is_dir() else p.parent
+        exe_path = None
+        for candidate in search_root.rglob("*"):
+            if is_ffmpeg(candidate):
+                exe_path = str(candidate.resolve())
+                break
+
+    if exe_path is None: 
+        return "ffmpeg"
+
+    settings_path = Path("data/settings/ffmpeg.json")
+    settings = json.loads(settings_path.read_text(encoding="utf-8"))
+    settings["path"] = exe_path
+    json.dump(settings, open(settings_path, "w"), indent=4)
+
+    return exe_path
 
 def authenticate_ffmpeg():
     settings = str(Path("data/settings/ffmpeg.json"))
@@ -24,8 +46,9 @@ def authenticate_ffmpeg():
         p = None
     while True:
         if p:
+            ffmpeg = update_ffmpeg_path(p)
             try:
-                out = subprocess.run([p, "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True, text=True).stdout
+                out = subprocess.run([ffmpeg, "-version"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True, text=True).stdout
                 if "ffmpeg version" in out.lower():
                     break
             except:
@@ -33,9 +56,6 @@ def authenticate_ffmpeg():
         p = input("Path to ffmpeg: ").strip()
         if p.lower() in ("exit", "quit"):
             sys.exit(1)
-
-    with open(settings, "w") as f:
-        json.dump({"path": p}, f, indent=4)
 
 # Attempts to download FFmpeg from github
 # Currentely tested on: Windows
