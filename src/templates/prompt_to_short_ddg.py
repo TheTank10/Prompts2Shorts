@@ -70,6 +70,8 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
             print(f"Fetching DuckDuckGo image and ai audio for story part {i+1}/{story_length}. time elapsed: ", time.time()-tick)
 
         content = part["content"]
+        story_transcript += content+" "
+        
         content = re.sub(r'[\*\(\)]', '', content)
         google_image_query = part["google_image_query"]
         
@@ -78,7 +80,6 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
             if not content:
                 return 0,0
 
-        story_transcript += content+" "
         google_image_path = None 
         audio_path, duration = None, None
         image_video_path = None

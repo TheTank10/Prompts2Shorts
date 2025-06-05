@@ -29,7 +29,7 @@ Each object must have two keys:
 Content rules:
 • No emojis  
 • Use simple, clear language  
-• Wrap *single words* (not phrases) in asterisks
+• Wrap important *single words* (not phrases) in asterisks
 
 Image query rules:
 • Be concise but detailed  

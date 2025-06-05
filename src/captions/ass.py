@@ -50,8 +50,8 @@ def generate(srt_file_path, transcript, ass_file_name="ass_output.ass", settings
 
     green_color = hex_to_ass_color(settings.get("font_highlighted_color", "00FF00"))
     normal_color = hex_to_ass_color(settings.get("font_normal_color", "FFFFFF"))
-    green_tag = f"{{\\1c{green_color}}}"
-    reset_tag = f"{{\\1c{normal_color}}}"
+    green_tag = f"{{\\c{green_color}}}"
+    reset_tag = f"{{\\c{normal_color}}}"
 
     # Animation config
     entry_ms = settings.get("subtitle_entry_ms", 250)
