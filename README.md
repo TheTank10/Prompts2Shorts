@@ -13,7 +13,7 @@
 
 ---
 
-## 🚀 Installation (v1.1.2)
+## 🚀 Installation (v1.1.3)
 
 Clone the repository and install the required dependencies:
 
