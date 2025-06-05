@@ -8,6 +8,7 @@ Content rules:
 • No emojis  
 • Use simple, clear language  
 • Wrap important *single words* (not phrases) in asterisks
+• Write all numbers as words, not digits
 
 Google query rules:
 • Be specific
