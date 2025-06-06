@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="data/images/logo0" alt="Logo" height="100">
+  <img src="data/images/logo0.png" alt="Logo" height="100">
 </p>
 
 # Prompts2Shorts
