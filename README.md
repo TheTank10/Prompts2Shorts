@@ -1,12 +1,10 @@
 <p align="center">
-  <img src="data/images/logo0.png" alt="Logo" height="300" width="300">
+  <img src="data/images/logo0.png" alt="Logo" height="200" width="200">
 </p>
 
 ---
 
-# Prompts2Shorts
-
-**prompts2shorts** is a Python-based tool that converts your text prompts into AI-generated short-form videos for platforms like TikTok, YouTube Shorts, Instagram Reels, and more. It leverages generative AI models to produce visuals, audio, and video edits, fully automated via command-line.
+**Prompts2Shorts** is a Python-based tool that converts your text prompts into AI-generated short-form videos for platforms like TikTok, YouTube Shorts, Instagram Reels, and more. It leverages generative AI models to produce visuals, audio, and video edits, fully automated via command-line.
 
 ---
 
