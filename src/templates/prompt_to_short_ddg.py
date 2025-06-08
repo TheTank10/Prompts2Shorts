@@ -90,7 +90,7 @@ def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings
                     google_image_path = duckduckgo.image.generate(google_image_query, image_name=f"image_{i}.png", settings=settings)
                 if audio_path is None: 
                     audio_path, duration = ai.audio.generate(content, text_to_speech_voice, audio_name=f"audio_{i}.mp3")
-                image_video_path = video.panning.generate(google_image_path, duration, video_name=f"panning_video{i}.mp4", settings=settings, print_mode=print_mode)
+                image_video_path = video.panning.generate(google_image_path, duration, video_name=f"panning_video{i}.mp4", video_index=i, settings=settings, print_mode=print_mode)
                 retries = max_retries
             except Exception as e:
                 print("Error fetching image, audio or/and video. Retrying...", e)

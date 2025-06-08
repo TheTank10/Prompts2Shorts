@@ -2,8 +2,6 @@
   <img src="data/images/logo0.png" alt="Logo" height="200" width="200">
 </p>
 
----
-
 **Prompts2Shorts** is a Python-based tool that converts your text prompts into AI-generated short-form videos for platforms like TikTok, YouTube Shorts, Instagram Reels, and more. It leverages generative AI models to produce visuals, audio, and video edits, fully automated via command-line.
 
 ---
@@ -13,11 +11,12 @@
 * 🎥 Generate short videos from a single prompt
 * 🧠 Vast amount of completely free AI models that require no API key
 * ⚙️ Highly customizable video generation settings
-* ⚡ CUDA/GPU acceleration supported
+* 🎞️ Many transition and panning effects
+* ⚡ CUDA/CPU acceleration supported
 
 ---
 
-## 🚀 Installation (v1.1.4)
+## 🚀 Installation (v1.2.0)
 
 Clone the repository and install the required dependencies:
 

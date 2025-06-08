@@ -6,6 +6,7 @@ import string
 from .ffmpeg import authenticate_ffmpeg
 from .ffmpeg import update_ffmpeg_path
 from .ffmpeg import download_ffmpeg
+from . import ffmpeg_codec as codec
 
 def generate_transcript(data):
     return ' '.join(item['content'] for item in data if 'content' in item)

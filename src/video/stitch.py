@@ -2,9 +2,9 @@ import subprocess
 import random
 from pathlib import Path
 import json
-import torch
 import cv2
 from mutagen.mp3 import MP3
+from src import utils 
 
 TRANSITIONS = [
     "fade", "fadeblack", "fadewhite", "wipeleft", "wiperight", "wipeup",
@@ -44,6 +44,7 @@ def generate(
     crf=28,
     audio_bitrate="96k",
 ):
+    codec = utils.codec.get_codec()
     video_paths = [Path(v) for v in video_list]
     durations = [get_video_duration(vp) for vp in video_paths]
 
@@ -55,10 +56,6 @@ def generate(
     for i, d in enumerate(durations[:-1]):
         total += d
         offsets.append(total - (i + 1) * transition_duration)
-
-    use_gpu = torch.cuda.is_available() or (settings and settings.get("force_cuda", False))
-    codec = "h264_nvenc" if use_gpu else "libx264"
-    hwaccel = ["-hwaccel", "cuda"] if use_gpu else []
 
     inputs = []
     for vp in video_paths:
@@ -133,7 +130,6 @@ def generate(
     cmd = [
         ffmpeg,
         "-y",
-        *hwaccel,
         *inputs,
         "-filter_complex", filter_complex,
         "-map", video_tag,

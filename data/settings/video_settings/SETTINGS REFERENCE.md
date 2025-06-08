@@ -21,8 +21,7 @@ To use a custom settings file, pass it into your command using:
     
     "resolution": "1080x1920",
     "fps": 25,
-    "zoom_speed": 0.0010,
-    "force_cuda": false,
+    "zoompan_effect": "zoomin,zoomout,panright,panleft",
 
     "font_name": "Montserrat Bold",
     "font_size": 20,
@@ -37,7 +36,7 @@ To use a custom settings file, pass it into your command using:
     "subtitle_init_scale_percentage": 90,
     "subtitle_final_scale_percentage": 100,
 
-    "transition": "slideleft",
+    "transition": "random",
     "transition_duration": 0.3,
 
     "system_prompt": "base"
@@ -56,8 +55,7 @@ To use a custom settings file, pass it into your command using:
 | `seed`                            | int    | `-1`                | Random seed for consistency. Set to any number ≥ 0 to make outputs repeatable.                                                                                         |
 | `resolution`                      | string | `"1080x1920"`       | Final video resolution (WIDTHxHEIGHT). `1080x1920` is ideal for vertical platforms like TikTok.                                                                        |
 | `fps`                             | int    | `25`                | Frames per second for the video. Higher FPS = smoother motion.                                                                                                         |
-| `zoom_speed`                      | float  | `0.0010`            | Controls how fast the camera zooms in each frame. 0 = no zoom.                                                                                                         |
-| `force_cuda`                      | bool   | `false`             | Force usage of CUDA GPU acceleration. Only enable if you know your system supports CUDA.                                                                               |
+| `zoompan_effect`                   | string | `"random"`            | Control which zoompan effect the video will have. Can be chained, check zoompan cheatcheet.|
 | `font_name`                       | string | `"Montserrat Bold"` | Font used for subtitles. Must exist in `data/fonts/`.                                                                                                                  |
 | `font_size`                       | int    | `20`                | Size of subtitle text.                                                                                                                                                 |
 | `font_normal_color`               | string | `"FFFFFF"`          | Hex color code for normal subtitle text (white).                                                                                                                       |
@@ -72,6 +70,26 @@ To use a custom settings file, pass it into your command using:
 | `transition`                   | string | `"random"`            | Transition effect used to transition between images. 31 effects to pick from. Read below for a list. Can be chained check xfade transition cheatshseet.| 
 | `transition_duration`                   | int | `0.3`            | Duration (in seconds) the transition will last |
 | `system_prompt`                   | string | `"base"`            | Internal system prompt used for AI generation. Should output a list like: `[{"content":"", "ai_image_query":"", "voice_style":""}]` Go to data/prompts/ to read more about how to create your own.                                   |
+
+---
+
+## 🖼️ FFmpeg `zoompan` Effects Cheatsheet
+
+*Applies motion effects to a single image. Only one effect is used per image clip.*
+*Effects can be chained with a comma ','. Example: `'zoompan_effect':'zoomin,panright,panleft,panright,random'`*
+*That would be the order effects appear in the video. After it reaches the end it loops back*
+
+| Effect       | Description                                                              |
+| ------------ | ------------------------------------------------------------------------ |
+| **random**   | Any random effect from this list                                         |
+| **zoomin**   | Smoothly zooms in from the original size toward a closer view.           |
+| **zoomout**  | Starts zoomed-in and gradually zooms out to the full image.              |
+| **panright** | Slowly pans from left to right across the image while gently zooming in. |
+| **panleft**  | Slowly pans from right to left across the image while gently zooming in. |
+| **panup**    | Slowly pans from bottom to top across the image while gently zooming in. |
+| **pandown**  | Slowly pans from top to bottom across the image while gently zooming in. |
+
+> 🧠 Tip: These effects are often used in slideshow-style animations (Ken Burns effect) to give static images dynamic motion.
 
 ---
 
@@ -125,7 +143,6 @@ To use a custom settings file, pass it into your command using:
 * **Text Visibility:** Tweak `font_size`, `font_outline`, and `font_shadow` for readability.
 * **Color Styling:** Use [htmlcolorcodes.com](https://htmlcolorcodes.com/) to choose hex colors.
 * **Subtitle Animation:** Lower `subtitle_entry_ms` to make words pop up quicker. Edit `subtitle_init_scale_percentage` to control the starting size of the subtitle when it first enters the video (set to 100 to disable)
-* **CUDA Troubleshooting:** Set `force_cuda` to `true` only if you’re sure your system supports it. Otherwise, leave it `false` for automatic detection.
 
 ---
 

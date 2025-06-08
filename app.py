@@ -119,7 +119,7 @@ def main():
                 video_path = utils.rename_file(video, str(seed))
                 print(f"Video {i+1}/{len(prompts)} has been generated into: {video_path}")
             else: 
-                print(f"Video could not be generated. This could be due to many reasons including the API refusing your calls, errors with ffmpeg and other common issues.\nCheck the common issues section in the readme file.\nVideo prompt: {prompt}")
+                print(f"Video could not be generated. This could be due to many reasons including the API refusing your calls, errors with ffmpeg, setting an unsupported template and other common issues.\nCheck the common issues section in the readme file.\nVideo prompt: {prompt}")
 
             utils.clear_temp()
         
