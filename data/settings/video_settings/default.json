@@ -6,7 +6,7 @@
     
     "resolution": "1080x1920",
     "fps": 25,
-    "zoompan_effect": "zoomout",
+    "zoompan_effect": "random",
 
     "font_name": "Montserrat Bold",
     "font_size": 20,

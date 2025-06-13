@@ -110,11 +110,8 @@ def main():
         for i, prompt in enumerate(prompts):
             prompt = prompt.strip()
 
-            if args.template=="ai":
-                video, seed = templates.prompt_to_short.generate(prompt, print_mode=print_mode, retries=args.retries, video_settings=video_settings, edit_mode=args.editmode)
-            elif args.template=="duckduckgo":
-                video, seed = templates.prompt_to_short_ddg.generate(prompt, print_mode=print_mode, retries=args.retries, video_settings=video_settings)
-
+            video, seed = templates.prompt_to_short.generate(prompt, template=args.template, print_mode=print_mode, retries=args.retries, video_settings=video_settings, edit_mode=args.editmode)
+           
             if video: 
                 video_path = utils.rename_file(video, str(seed))
                 print(f"Video {i+1}/{len(prompts)} has been generated into: {video_path}")

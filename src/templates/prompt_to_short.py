@@ -1,142 +1,200 @@
-# Template for generating videos completely from AI
-
-from src import ai 
-from src import captions 
-from src import video
+from pathlib import Path
+from PIL import Image
 import re
 import time
 import json
-from pathlib import Path
-from PIL import Image
 
-def edit_text(content, content_length, content_index, settings, retries):
-    print(f"Edit content:\n\nPart {content_index+1}/{content_length}: {content}\n\nEdit this part of the content or press enter to continue.\nUse --enhance ... to enhance with AI")
-    edit = input(": ")
+from src import ai
+from src import duckduckgo
+from src import captions
+from src import video
 
-    if edit.split(" ")[0]=="--enhance":
-        while True:
-            try:
-                content, _ = ai.text.generate(f"Enhance this: {content}\n\n{edit.partition(' ')[2]}", generate_json=False, settings=settings)
-                return edit_text(content, content_length, content_index, settings, retries)
-            except Exception as e: 
-                print("Error re-generating content. Retrying...", e)
-                retries-=1
-                if retries==0:
-                    return
-    elif edit!="":
-        return edit
-    else: 
-        return content
+SUPPORTED_QUERIES = ["ai_image_query", "google_image_query"]
 
-def edit_image(ai_image_query, content_length, image_index, settings, retries):
-    ai_image_path = None 
+def prompt_for_text_edit(text, index, length, settings, retries):
+    print(f"Prompt used for part {index+1}/{length}:\n{text}\n")
+    print("Enter new text directly, or use '--enhance <instructions>' to have AI improve the original prompt.")
+    print("Press enter if you do not wish to edit.")
+    user_input = input(": ")
 
-    while True:
+    if user_input.startswith("--enhance"):
+        instructions = user_input.partition(' ')[2]
         try:
-            ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{image_index}.jpg", settings=settings)
-            break
-        except Exception as e:
-            print("Error re-generating image. Retrying...", e)
-            retries-=1
-            if retries==0:
-                return
 
-    print(f"Edit image prompt:\n\nPart {image_index+1}/{content_length}: {ai_image_query}\n\nEdit the prompt of the ai image or press enter to continue.\nUse --enhance ... to enhance this prompt with AI")
-    image = Image.open(ai_image_path)
-    image.show()
-    edit = input(": ")
+            enhanced_text, _ = ai.text.generate(
+                f"Text to enhance: {text}\n\n{instructions}",
+                generate_json=False,
+                settings=settings,
+            )
 
-    
-    if edit=="":
-        return ai_image_path
-    else:
-        return edit_image(edit, content_length, image_index, settings, retries)
+            return prompt_for_text_edit(enhanced_text, index, length, settings, retries)
+        except Exception:
 
-def generate(prompt, print_mode=True, edit_mode=False, retries=5, video_settings="default"):
+            if retries > 0:
+                return prompt_for_text_edit(text, index, length, settings, retries - 1)
 
-    settings = json.load(open(Path(f"data/settings/video_settings/{video_settings}.json")))
+    return user_input or text
+
+def prompt_for_image_edit(query, index, length, settings, retries, query_type):
+
+    print(f"Image prompt for part {index+1}/{length} ({query_type}):\n{query}\n")
+    try:
+        if query_type == "ai_image_query":
+            image_path = ai.image.generate(
+                query,
+                image_name=f"image_{index}.jpg",
+                settings=settings,
+            )
+        elif query_type == "google_image_query":
+            image_path = duckduckgo.image.generate(
+                query,
+                image_name=f"image_{index}.png",
+                settings=settings,
+            )
+        Image.open(image_path).show()
+
+        user_prompt = input(
+            f"Part {index+1}/{length}: adjust image prompt or press enter to accept:\n: "
+        )
+        if user_prompt:
+            return prompt_for_image_edit(user_prompt, index, length, settings, retries, query_type)
+        return image_path
+
+    except Exception:
+        if retries > 0:
+            return prompt_for_image_edit(query, index, length, settings, retries - 1, query_type)
+        return query
+
+def generate(
+    prompt,
+    template="ai",
+    print_mode=True,
+    edit_mode=False,
+    retries=5,
+    video_settings="default",
+):
+    # load settings
+    settings_file = Path(f"data/settings/video_settings/{video_settings}.json")
+    config = json.loads(settings_file.read_text())
+
+    # adjust system prompt for duckduckgo
+    if template == "duckduckgo" and config.get("system_prompt") == "base":
+        config["system_prompt"] = "base_ddg"
+
+    voice = config.get("text_to_speech_voice", "ash")
     max_retries = retries
-    tick = time.time()
-
-    text_to_speech_voice = settings.get("text_to_speech_voice", "ash")
+    start_time = time.time()
 
     if print_mode:
-        print("Generating story. time elapsed: ", time.time()-tick)
+        print("Generating story. Elapsed:", time.time() - start_time)
 
-    story, story_seed = None, None
-    story_transcript = "" 
-
-    while not story:
+    # generate story sections
+    story, seed = None, None
+    while not story and retries:
         try:
-            story, story_seed = ai.text.generate(prompt, settings=settings)
+            story, seed = ai.text.generate(prompt, settings=config)
             retries = max_retries
-        except Exception as e: 
-            print("Error generating story. Retrying...", e)
-            story = None
+        except Exception:
             retries -= 1
-            if retries <= 0:
-                return 0,0
             time.sleep(1)
+    if not story:
+        return 0, 0
 
-    story_length = len(story)
-    videos = []
-    audios = []
+    total_parts = len(story)
+    video_clips = []
+    audio_clips = []
+    transcript = ""
 
     for i, part in enumerate(story):
-
         if print_mode:
-            print(f"Fetching ai image and ai audio for story part {i+1}/{story_length}. time elapsed: ", time.time()-tick)
+            print(f"Part {i+1}/{total_parts}. Elapsed:", time.time() - start_time)
 
-        content = part["content"]
-        story_transcript += content+" "
-        
-        content = re.sub(r'[\*\(\)]', '', content)
-        ai_image_query = part["ai_image_query"]
+        # clean up text
+        raw_content = part["content"]
+        clean_content = re.sub(r"[()*]", "", raw_content)
+        transcript += raw_content + " "  # build transcript string
 
+        # allow text edits
         if edit_mode:
-            content = edit_text(content, story_length, i, settings, retries)
-            if not content:
-                return 0,0
-        
-        ai_image_path = None 
-        audio_path, duration = None, None
-        image_video_path = None
+            clean_content = prompt_for_text_edit(
+                clean_content, i, total_parts, config, retries
+            )
 
-        while not ai_image_path or not audio_path:
+        # detect which query field is present
+        for key in SUPPORTED_QUERIES:
+            if key in part:
+                query_text = part[key]
+                query_key = key
+                break
+        else:
+            query_text = ""
+            query_key = ""
+
+        img_path = None
+        audio_path = None
+        duration = None
+
+        while (not img_path or not audio_path) and retries:
             try:
-                if ai_image_path is None:
-                    if edit_mode: 
-                        ai_image_path = edit_image(ai_image_query, story_length, i, settings, retries)
-                        if ai_image_path==None: 
-                            return 0,0
+                # image generation
+                if not img_path:
+                    if edit_mode:
+                        img_path = prompt_for_image_edit(
+                            query_text, i, total_parts, config, retries, query_key
+                        )
+                    elif key == "ai_image_query":
+                        img_path = ai.image.generate(
+                            query_text,
+                            image_name=f"image_{i}.jpg",
+                            settings=config,
+                        )
                     else:
-                        ai_image_path = ai.image.generate(ai_image_query, image_name=f"image_{i}.jpg", settings=settings)
-                if audio_path is None: 
-                    audio_path, duration = ai.audio.generate(content, text_to_speech_voice, audio_name=f"audio_{i}.mp3")
-                image_video_path = video.panning.generate(ai_image_path, duration, video_name=f"panning_video{i}.mp4", video_index=i, settings=settings, print_mode=print_mode)
+                        img_path = duckduckgo.image.generate(
+                            query_text,
+                            image_name=f"image_{i}.png",
+                            settings=config,
+                        )
+
+                # audio generation
+                if not audio_path:
+                    audio_path, duration = ai.audio.generate(
+                        clean_content, voice, audio_name=f"audio_{i}.mp3"
+                    )
+
+                # create panning video clip
+                clip = video.panning.generate(
+                    img_path,
+                    duration,
+                    video_name=f"panning_video{i}.mp4",
+                    video_index=i,
+                    settings=config,
+                    print_mode=print_mode,
+                )
+                video_clips.append(clip)
+                audio_clips.append(audio_path)
                 retries = max_retries
+
             except Exception as e:
-                print("Error generating image, audio or/and video. Retrying...", e)
-                ai_image_path = None
-                audio_path = None
+                print("Error fetching image or audio: ", e)
                 retries -= 1
-                if retries <= 0:
-                    return 0,0
+                img_path, audio_path = None, None
                 time.sleep(1)
 
-        videos.append(image_video_path)
-        audios.append(audio_path)
+        if retries == 0:
+            return 0, 0
 
     if print_mode:
-        print("Concatinating audio, generating srt and ass file. time elapsed: ", time.time()-tick)
+        print("Concatenating, generating captions. Elapsed:", time.time() - start_time)
 
-    concatenated_audio = video.audio.concatenate_audio(audios, audio_name="final_audio.mp3")
-    srt_file = captions.srt.generate(concatenated_audio, story_transcript, srt_file_name="words.srt")
-    ass_file = captions.ass.generate(srt_file, story_transcript, ass_file_name="words.ass", settings=settings)
+    # combine audio and generate subtitles
+    audio_all = video.audio.concatenate_audio(audio_clips, audio_name="final_audio.mp3")
+    srt_file = captions.srt.generate(audio_all, transcript, srt_file_name="words.srt")
+    ass_file = captions.ass.generate(srt_file, transcript, ass_file_name="words.ass", settings=config)
 
     if print_mode:
-        print("Stiching video together. time elapsed: ", time.time()-tick)
+        print("Stitching video. Elapsed:", time.time() - start_time)
 
-    final_video = video.stitch.generate(videos, concatenated_audio, ass_file, settings=settings, print_mode=print_mode)
-
-    return final_video, story_seed
+    final_video = video.stitch.generate(
+        video_clips, audio_all, ass_file, settings=config, print_mode=print_mode
+    )
+    return final_video, seed
